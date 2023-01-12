@@ -15,9 +15,9 @@ Property TradeVolume As %Double [ SqlColumnNumber = 7 ];
 
 Property Prediction As %Double [ SqlColumnNumber = 8 ];
 
-ClassMethod LoadData(path As %String = "C:\SRC\Containers\Python-with-InterSystems-IRIS-2022\misc\CoinData.csv") As %Status
+ClassMethod LoadData(path As %String = "/opt/irisapp/misc/CoinData.csv") As %Status
 {
-    set query = "LOAD DATA FROM FILE '" _ path _ "' INTO IntegratedML.Coin"
+    set query = "LOAD DATA FROM FILE '" _ path _ "' INTO IntegratedML.Coin (CoinDate, PriceOpen, PriceHigh, PriceLow, PriceClose, TradeVolume)"
     set tStatement = ##class(%SQL.Statement).%New()
     set qSC = tStatement.%Prepare(query)
     if qSC '= 1 {
@@ -33,6 +33,7 @@ ClassMethod LoadData(path As %String = "C:\SRC\Containers\Python-with-InterSyste
 
 ClassMethod Predict(pModel As %String = "model-1") As %Status
 {
+    do $System.SQL.Execute("SET ML CONFIGURATION %PMML")
     set default = ##class(%SYS.ML.Configuration).%GetDefault()
     write !,"The default IntegratedML service is: "_default
     write !,"Creating Model " _ pModel _"...",!
@@ -40,7 +41,7 @@ ClassMethod Predict(pModel As %String = "model-1") As %Status
     do cSC.%Display()
     write !,"Model "_ pModel _" created."
     write !,"Training "_ pModel _"...",!
-    set tSC = $System.SQL.Execute("TRAIN MODEL """_ pModel _"""")
+  //  set tSC = $System.SQL.Execute("TRAIN MODEL """_ pModel _""" USING {""class_name"" : ""IntegratedML.pmml." _ pModel _ "}")
     do tSC.%Display()
 }
 
